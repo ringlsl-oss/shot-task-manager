@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="任务助手">
+  <meta name="description" content="拍摄任务管理助手">
+  <title>拍摄任务管理助手</title>
+
+  <!-- 样式 -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- iOS 图标 -->
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- CDN: dayjs + 中文包 -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/locale/zh-cn.js"></script>
+
+  <!-- CDN: Chart.js (统计图表) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- ==================== 顶部标题栏 ==================== -->
+  <header class="app-header">
+    <h1>📷 拍摄任务管理助手</h1>
+  </header>
+
+  <!-- ==================== 主内容区 ==================== -->
+  <main class="main-content">
+
+    <!-- Tab 0: 任务列表 -->
+    <section class="tab-page active" id="tab-tasks">
+      <div class="income-overview" id="income-overview">
+        <div class="income-card paid-card" id="income-week-paid">
+          <div class="income-label">本周 · 已到账</div>
+          <div class="income-amount">¥0</div>
+        </div>
+        <div class="income-card" id="income-week-all">
+          <div class="income-label">本周 · 全部任务</div>
+          <div class="income-amount">¥0</div>
+        </div>
+        <div class="income-card paid-card" id="income-month-paid">
+          <div class="income-label">本月 · 已到账</div>
+          <div class="income-amount">¥0</div>
+        </div>
+        <div class="income-card" id="income-month-all">
+          <div class="income-label">本月 · 全部任务</div>
+          <div class="income-amount">¥0</div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" placeholder="搜索客户名称...">
+        </div>
+        <button class="filter-btn" id="filter-btn">筛选 ▾</button>
+      </div>
+
+      <div class="filter-panel" id="filter-panel">
+        <div class="filter-row">
+          <span class="filter-label">支付状态</span>
+          <div class="filter-chips" id="filter-paid">
+            <button class="filter-chip active" data-value="all">全部</button>
+            <button class="filter-chip" data-value="paid">已支付</button>
+            <button class="filter-chip" data-value="unpaid">未支付</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <span class="filter-label">拍摄类别</span>
+          <div class="filter-chips" id="filter-category">
+            <button class="filter-chip active" data-value="all">全部</button>
+          </div>
+        </div>
+        <div class="filter-row">
+          <span class="filter-label">甲方来源</span>
+          <div class="filter-chips" id="filter-source">
+            <button class="filter-chip active" data-value="all">全部</button>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-outline btn-sm" id="filter-reset">重置筛选</button>
+        </div>
+      </div>
+
+      <div class="task-list" id="task-list"></div>
+      <div class="empty-state" id="task-empty" style="display:none;">
+        <div class="empty-icon">📋</div>
+        <p>还没有任务</p>
+        <p class="empty-sub">点击右下角 ＋ 添加第一个任务</p>
+      </div>
+    </section>
+
+    <!-- Tab 1: 统计看板 -->
+    <section class="tab-page" id="tab-stats">
+      <div class="stats-section">
+        <div class="section-title">📊 本周 / 本月收入</div>
+        <div class="income-overview">
+          <div class="income-card paid-card">
+            <div class="income-label">本周 · 已到账</div>
+            <div class="income-amount" id="stats-week-paid">¥0</div>
+          </div>
+          <div class="income-card">
+            <div class="income-label">本周 · 全部任务</div>
+            <div class="income-amount" id="stats-week-all">¥0</div>
+          </div>
+          <div class="income-card paid-card">
+            <div class="income-label">本月 · 已到账</div>
+            <div class="income-amount" id="stats-month-paid">¥0</div>
+          </div>
+          <div class="income-card">
+            <div class="income-label">本月 · 全部任务</div>
+            <div class="income-amount" id="stats-month-all">¥0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <div class="section-title">⏱️ 本月平均时薪</div>
+        <div class="stat-highlight">
+          <div class="stat-value" id="stats-avg-rate">¥0</div>
+          <div class="stat-label">元 / 小时</div>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <div class="section-title">📈 近12个月收入趋势</div>
+        <div class="chart-container">
+          <canvas id="chart-monthly"></canvas>
+        </div>
+        <div id="chart-fallback" style="display:none;"></div>
+      </div>
+
+      <div class="stats-section">
+        <div class="section-title">📅 年度汇总</div>
+        <div class="year-switcher">
+          <button id="year-prev">◀</button>
+          <span class="year-label" id="year-label">2026</span>
+          <button id="year-next">▶</button>
+        </div>
+        <div class="year-summary" id="year-summary">
+          <div class="year-summary-item">
+            <div class="ys-value" id="ys-total">¥0</div>
+            <div class="ys-label">总收入</div>
+          </div>
+          <div class="year-summary-item">
+            <div class="ys-value" id="ys-paid">¥0</div>
+            <div class="ys-label">已到账</div>
+          </div>
+          <div class="year-summary-item">
+            <div class="ys-value" id="ys-unpaid">¥0</div>
+            <div class="ys-label">未到账</div>
+          </div>
+          <div class="year-summary-item">
+            <div class="ys-value" id="ys-count">0</div>
+            <div class="ys-label">任务数</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="export-buttons">
+        <button class="btn btn-outline" id="btn-export-csv">📥 导出 CSV</button>
+        <button class="btn btn-outline" id="btn-export-excel">📊 导出 Excel</button>
+        <button class="btn btn-outline btn-sm" id="btn-export-json">💾 备份数据</button>
+      </div>
+    </section>
+
+    <!-- Tab 2: 支付提醒 -->
+    <section class="tab-page" id="tab-reminders">
+      <div class="reminder-header">
+        <div class="reminder-count" id="reminder-count">0</div>
+        <p>笔未支付超5天的任务</p>
+      </div>
+      <div class="task-list" id="reminder-list"></div>
+      <div class="empty-state" id="reminder-empty" style="display:none;">
+        <div class="empty-icon">✅</div>
+        <p>太棒了！</p>
+        <p class="empty-sub">没有超期未支付的任务</p>
+      </div>
+      <div class="bulk-action-bar" id="bulk-action-bar" style="display:none;">
+        <button class="btn btn-primary" id="btn-bulk-ics">📅 一键添加所有提醒到日历</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 底部导航 ==================== -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="tasks">
+      <span class="nav-icon">📋</span> 任务
+    </button>
+    <button class="nav-item" data-tab="stats">
+      <span class="nav-icon">📊</span> 统计
+    </button>
+    <button class="nav-item" data-tab="reminders">
+      <span class="nav-icon">🔔</span> 提醒
+    </button>
+  </nav>
+
+  <!-- ==================== FAB 新增按钮 ==================== -->
+  <button class="fab" id="fab-add" title="新增任务">＋</button>
+
+</div>
+
+<!-- ==================== 任务表单弹窗 ==================== -->
+<div class="modal-overlay" id="modal-form">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="form-title">新增任务</h2>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="form-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-save">💾 保存任务</button>
+      <button class="btn btn-outline btn-block" id="btn-del" style="display:none; margin-top:8px; color: var(--color-danger); border-color: var(--color-danger);">
+        🗑 删除任务
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 确认对话框 ==================== -->
+<div class="confirm-overlay" id="confirm-dialog">
+  <div class="confirm-dialog">
+    <div class="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">确认删除？</div>
+    <div class="confirm-msg" id="confirm-msg">删除后无法恢复</div>
+    <div class="confirm-buttons">
+      <button class="btn btn-outline" id="confirm-cancel">取消</button>
+      <button class="btn btn-danger" id="confirm-ok">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== JS 脚本 ==================== -->
+<script src="js/utils.js"></script>
+<script src="js/store.js"></script>
+<script src="js/form.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/reminders.js"></script>
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+
+<!-- 注册 Service Worker -->
+<script>
+  if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(function() {});
+  }
+</script>
+
+</body>
+</html>
