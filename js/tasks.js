@@ -9,7 +9,8 @@ App.tasks = (function() {
     search: '',
     paid: 'all',
     category: 'all',
-    source: 'all'
+    source: 'all',
+    type: 'all'
   };
 
   // ==================== 渲染任务列表 ====================
@@ -42,6 +43,11 @@ App.tasks = (function() {
 
         // 甲方来源
         if (currentFilters.source !== 'all' && task.clientSource !== currentFilters.source) {
+          return false;
+        }
+
+        // 任务类型
+        if (currentFilters.type !== 'all' && task.taskType !== currentFilters.type) {
           return false;
         }
 
@@ -81,6 +87,11 @@ App.tasks = (function() {
       var paidBadgeClass = task.paid ? 'paid' : (overdueDays > 0 ? 'unpaid overdue-badge' : 'unpaid');
       var paidText = task.paid ? '✅ 已收款' : (overdueDays > 0 ? '⚠️ 超期' + overdueDays + '天' : '⏳ 未收款');
 
+      var isShooting = task.taskType !== 'editing';
+      var typeTag = isShooting ? '📷 拍摄' : '🎬 剪辑';
+      var typeTagClass = isShooting ? 'category-badge' : 'category-badge';
+      var locationHtml = isShooting ? '<span>📍 ' + escapeHtml(task.location || '未知地点') + '</span>' : '';
+
       html += '' +
         '<div class="task-card' + overdueClass + '" data-id="' + task.id + '">' +
           '<div class="card-header">' +
@@ -88,12 +99,13 @@ App.tasks = (function() {
             '<span class="fee">' + App.formatCurrency(task.fee) + '</span>' +
           '</div>' +
           '<div class="card-meta">' +
-            '<span>📍 ' + escapeHtml(task.location || '未知地点') + '</span>' +
+            locationHtml +
             '<span>📅 ' + App.formatShortDateTime(task.datetime) + '</span>' +
             '<span>⏱ ' + App.getDurationLabel(task.duration) + '</span>' +
           '</div>' +
           '<div class="card-footer">' +
-            '<span class="category-badge">' + escapeHtml(task.category || '未分类') + '</span>' +
+            '<span class="category-badge">' + typeTag + '</span>' +
+            '<span class="category-badge" style="margin-left:4px;">' + escapeHtml(task.category || '未分类') + '</span>' +
             '<span class="paid-badge ' + paidBadgeClass + '">' + paidText + '</span>' +
           '</div>' +
         '</div>';
@@ -198,6 +210,7 @@ App.tasks = (function() {
 
     // 支付状态筛选芯片
     bindChipGroup('filter-paid', function(val) { currentFilters.paid = val; applyFilters(); });
+    bindChipGroup('filter-type', function(val) { currentFilters.type = val; applyFilters(); });
     bindChipGroup('filter-category', function(val) { currentFilters.category = val; applyFilters(); });
     bindChipGroup('filter-source', function(val) { currentFilters.source = val; applyFilters(); });
 
@@ -206,7 +219,9 @@ App.tasks = (function() {
       currentFilters.paid = 'all';
       currentFilters.category = 'all';
       currentFilters.source = 'all';
+      currentFilters.type = 'all';
       resetChipGroup('filter-paid');
+      resetChipGroup('filter-type');
       resetChipGroup('filter-category');
       resetChipGroup('filter-source');
       applyFilters();
@@ -236,7 +251,7 @@ App.tasks = (function() {
 
   function updateFilterBtnState() {
     var btn = document.getElementById('filter-btn');
-    var hasFilter = currentFilters.paid !== 'all' || currentFilters.category !== 'all' || currentFilters.source !== 'all';
+    var hasFilter = currentFilters.paid !== 'all' || currentFilters.category !== 'all' || currentFilters.source !== 'all' || currentFilters.type !== 'all';
     if (hasFilter) {
       btn.classList.add('has-filter');
     } else {
