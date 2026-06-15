@@ -17,6 +17,7 @@ App.dashboard = (function() {
       renderIncomeCards(tasks);
       renderRank(tasks);
       renderAvgRate(tasks);
+      renderDeliveryStats(tasks);
       renderMonthlyChart(tasks);
       renderYearSummary(tasks);
     }).catch(function(err) {
@@ -66,6 +67,25 @@ App.dashboard = (function() {
     setText('stats-week-all', App.formatCurrency(wa));
     setText('stats-month-paid', App.formatCurrency(mp));
     setText('stats-month-all', App.formatCurrency(ma));
+  }
+
+  // ==================== 交片统计 ====================
+
+  function renderDeliveryStats(tasks) {
+    var targetMonth = getTargetMonth();
+    var month = { start: targetMonth.startOf('month'), end: targetMonth.endOf('month') };
+
+    var total = 0, delivered = 0;
+    tasks.forEach(function(t) {
+      if (!dayjs(t.datetime).isBefore(month.start) && !dayjs(t.datetime).isAfter(month.end)) {
+        total++;
+        if (t.delivered) delivered++;
+      }
+    });
+
+    var rate = total > 0 ? Math.round(delivered / total * 100) : 0;
+    document.getElementById('stats-del-count').textContent = delivered + '/' + total;
+    document.getElementById('stats-del-rate').textContent = rate + '%';
   }
 
   // ==================== 段位计算 ====================

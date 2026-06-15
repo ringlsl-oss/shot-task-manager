@@ -77,6 +77,14 @@
           </div>
         </div>
         <div class="filter-row">
+          <span class="filter-label">交片状态</span>
+          <div class="filter-chips" id="filter-delivered">
+            <button class="filter-chip active" data-value="all">全部</button>
+            <button class="filter-chip" data-value="yes">已交片</button>
+            <button class="filter-chip" data-value="no">未交片</button>
+          </div>
+        </div>
+        <div class="filter-row">
           <span class="filter-label">任务类型</span>
           <div class="filter-chips" id="filter-type">
             <button class="filter-chip active" data-value="all">全部</button>
@@ -160,6 +168,20 @@
         <div class="stat-highlight">
           <div class="stat-value" id="stats-avg-rate">¥0</div>
           <div class="stat-label">元 / 小时</div>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <div class="section-title">📮 交片情况</div>
+        <div class="income-overview" style="grid-template-columns:1fr 1fr;">
+          <div class="income-card">
+            <div class="income-label">本月已交片 / 总任务</div>
+            <div class="income-amount" id="stats-del-count" style="color:var(--color-text);">0/0</div>
+          </div>
+          <div class="income-card paid-card">
+            <div class="income-label">交片率</div>
+            <div class="income-amount" id="stats-del-rate">0%</div>
+          </div>
         </div>
       </div>
 

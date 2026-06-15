@@ -6,7 +6,7 @@ window.App = window.App || {};
 
 // ==================== 常量 ====================
 
-App.CATEGORIES = ['微课', '宣传片', '活动', '纪录片'];
+App.CATEGORIES = ['微课', '宣传片', '活动', '纪录片', '党建片', '生日照片', '活动照片', '节目背景'];
 App.CLIENT_SOURCES = ['个人一手业务', '其他业务'];
 App.TASK_TYPES = [
   { value: 'video',   label: '📹 视频拍摄' },

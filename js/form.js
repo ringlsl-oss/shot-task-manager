@@ -30,6 +30,7 @@ App.form = (function() {
       duration: '4',
       project: '',
       paid: 'false',
+      delivered: 'false',
       deadline: '',
       equipment: '',
       category: '',
@@ -48,6 +49,7 @@ App.form = (function() {
       data.fee = task.fee != null ? task.fee : '';
       data.duration = task.duration != null ? String(task.duration) : '4';
       data.paid = task.paid ? 'true' : 'false';
+      data.delivered = task.delivered ? 'true' : 'false';
       data.deadline = task.deadline || '';
       data.equipment = task.equipment || '';
       data.category = task.category || '';
@@ -77,6 +79,8 @@ App.form = (function() {
 
     var paidYesSel = data.paid === 'true' ? ' selected' : '';
     var paidNoSel = data.paid === 'false' ? ' selected' : '';
+    var delYesSel = data.delivered === 'true' ? ' selected' : '';
+    var delNoSel = data.delivered === 'false' ? ' selected' : '';
 
     var videoSel = data.taskType === 'video' ? ' selected' : '';
     var photoSel = data.taskType === 'photo' ? ' selected' : '';
@@ -146,6 +150,15 @@ App.form = (function() {
           '<div class="payment-option unpaid-option' + paidNoSel + '" data-value="false">⏳ 未收款</div>' +
         '</div>' +
         '<input type="hidden" id="f-paid" value="' + data.paid + '">' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label class="form-label">是否已交片 <span class="required">*</span></label>' +
+        '<div class="payment-toggle" id="f-delivered-toggle">' +
+          '<div class="payment-option paid-option' + delYesSel + '" data-value="true">✅ 已交片</div>' +
+          '<div class="payment-option unpaid-option' + delNoSel + '" data-value="false">⏳ 未交片</div>' +
+        '</div>' +
+        '<input type="hidden" id="f-delivered" value="' + data.delivered + '">' +
       '</div>' +
 
       '<div class="form-row">' +
@@ -244,14 +257,28 @@ App.form = (function() {
     if (durEl) durEl.addEventListener('change', updateRate);
 
     // 支付状态切换
-    var payOptions = document.querySelectorAll('.payment-option');
-    payOptions.forEach(function(opt) {
-      opt.addEventListener('click', function() {
-        payOptions.forEach(function(o) { o.classList.remove('selected'); });
-        opt.classList.add('selected');
-        document.getElementById('f-paid').value = opt.dataset.value;
+    var paidGroup = document.querySelector('#f-paid').closest('.form-group');
+    if (paidGroup) {
+      paidGroup.querySelectorAll('.payment-option').forEach(function(opt) {
+        opt.addEventListener('click', function() {
+          paidGroup.querySelectorAll('.payment-option').forEach(function(o) { o.classList.remove('selected'); });
+          opt.classList.add('selected');
+          document.getElementById('f-paid').value = opt.dataset.value;
+        });
       });
-    });
+    }
+
+    // 交片状态切换
+    var delGroup = document.getElementById('f-delivered-toggle');
+    if (delGroup) {
+      delGroup.querySelectorAll('.payment-option').forEach(function(opt) {
+        opt.addEventListener('click', function() {
+          delGroup.querySelectorAll('.payment-option').forEach(function(o) { o.classList.remove('selected'); });
+          opt.classList.add('selected');
+          document.getElementById('f-delivered').value = opt.dataset.value;
+        });
+      });
+    }
 
     // 任务类型切换：显示/隐藏地点和器材
     var typeOptions = document.querySelectorAll('#f-tasktype-toggle .task-type-option');
@@ -323,6 +350,7 @@ App.form = (function() {
     var feeEl = isShooting ? document.getElementById('f-fee') : document.getElementById('f-fee2');
     var fee = parseFloat(feeEl.value) || 0;
     var paid = document.getElementById('f-paid').value === 'true';
+    var delivered = document.getElementById('f-delivered').value === 'true';
 
     var task = {
       id: currentTaskId || App.generateId(),
@@ -335,6 +363,7 @@ App.form = (function() {
       duration: duration,
       hourlyRate: isShooting ? Math.round(fee / duration) : 0,
       paid: paid,
+      delivered: delivered,
       category: document.getElementById('f-category').value.trim(),
       clientSource: document.getElementById('f-source').value.trim(),
       deadline: document.getElementById('f-deadline').value.trim(),

@@ -8,6 +8,7 @@ App.tasks = (function() {
   var currentFilters = {
     search: '',
     paid: 'all',
+    delivered: 'all',
     category: 'all',
     source: 'all',
     type: 'all'
@@ -37,6 +38,10 @@ App.tasks = (function() {
         // 支付状态
         if (currentFilters.paid === 'paid' && !task.paid) return false;
         if (currentFilters.paid === 'unpaid' && task.paid) return false;
+
+        // 交片状态
+        if (currentFilters.delivered === 'yes' && !task.delivered) return false;
+        if (currentFilters.delivered === 'no' && task.delivered) return false;
 
         // 类别
         if (currentFilters.category !== 'all' && task.category !== currentFilters.category) {
@@ -88,6 +93,8 @@ App.tasks = (function() {
       var overdueClass = overdueDays > 0 ? ' overdue' : '';
       var paidBadgeClass = task.paid ? 'paid' : (overdueDays > 0 ? 'unpaid overdue-badge' : 'unpaid');
       var paidText = task.paid ? '✅ 已收款' : (overdueDays > 0 ? '⚠️ 超期' + overdueDays + '天' : '⏳ 未收款');
+      var delText = task.delivered ? '📮 已交片' : '📤 未交片';
+      var delClass = task.delivered ? 'paid' : 'unpaid';
 
       var isShooting = task.taskType !== 'editing';
       var typeLabels = { video: '📹 视频', photo: '📸 照片', editing: '🎬 剪辑' };
@@ -113,6 +120,7 @@ App.tasks = (function() {
             '<span class="category-badge">' + typeTag + '</span>' +
             '<span class="category-badge" style="margin-left:4px;">' + escapeHtml(task.category || '未分类') + '</span>' +
             '<span class="paid-badge ' + paidBadgeClass + '">' + paidText + '</span>' +
+            '<span class="paid-badge ' + delClass + '" style="margin-left:4px;">' + delText + '</span>' +
           '</div>' +
         '</div>';
     });
@@ -216,6 +224,7 @@ App.tasks = (function() {
 
     // 支付状态筛选芯片
     bindChipGroup('filter-paid', function(val) { currentFilters.paid = val; applyFilters(); });
+    bindChipGroup('filter-delivered', function(val) { currentFilters.delivered = val; applyFilters(); });
     bindChipGroup('filter-type', function(val) { currentFilters.type = val; applyFilters(); });
     bindChipGroup('filter-category', function(val) { currentFilters.category = val; applyFilters(); });
     bindChipGroup('filter-source', function(val) { currentFilters.source = val; applyFilters(); });
@@ -226,7 +235,9 @@ App.tasks = (function() {
       currentFilters.category = 'all';
       currentFilters.source = 'all';
       currentFilters.type = 'all';
+      currentFilters.delivered = 'all';
       resetChipGroup('filter-paid');
+      resetChipGroup('filter-delivered');
       resetChipGroup('filter-type');
       resetChipGroup('filter-category');
       resetChipGroup('filter-source');
@@ -257,7 +268,7 @@ App.tasks = (function() {
 
   function updateFilterBtnState() {
     var btn = document.getElementById('filter-btn');
-    var hasFilter = currentFilters.paid !== 'all' || currentFilters.category !== 'all' || currentFilters.source !== 'all' || currentFilters.type !== 'all';
+    var hasFilter = currentFilters.paid !== 'all' || currentFilters.delivered !== 'all' || currentFilters.category !== 'all' || currentFilters.source !== 'all' || currentFilters.type !== 'all';
     if (hasFilter) {
       btn.classList.add('has-filter');
     } else {
