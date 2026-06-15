@@ -1086,3 +1086,67 @@ body {
   font-size: 0.72rem;
   color: var(--color-text-muted);
 }
+
+/* ==================== 段位升级弹窗 ==================== */
+.rankup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.rankup-overlay.show {
+  opacity: 1;
+}
+
+.rankup-dialog {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  text-align: center;
+  width: calc(100% - 60px);
+  max-width: 300px;
+  animation: rankupBounce 0.5s ease;
+}
+
+@keyframes rankupBounce {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.rankup-icon {
+  font-size: 4rem;
+  line-height: 1;
+  animation: rankupSpin 0.8s ease;
+}
+
+@keyframes rankupSpin {
+  0% { transform: rotate(0deg) scale(0); }
+  50% { transform: rotate(15deg) scale(1.2); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.rankup-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 12px 0 4px;
+  color: var(--color-text);
+}
+
+.rankup-rank {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 8px 0 20px;
+}
+
+.rankup-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+}

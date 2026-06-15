@@ -97,6 +97,40 @@ App.dashboard = (function() {
     } else {
       document.getElementById('rank-sub').textContent = '已达最高段位！👑';
     }
+
+    // 段位升级检测
+    var lastRank = localStorage.getItem('shot_last_rank');
+    if (lastRank && rank.name !== lastRank) {
+      var lastIdx = -1, curIdx = tiers.indexOf(rank);
+      tiers.forEach(function(t, i) { if (t.name === lastRank) lastIdx = i; });
+      if (curIdx > lastIdx) {
+        showRankUpPopup(rank);
+      }
+    }
+    localStorage.setItem('shot_last_rank', rank.name);
+  }
+
+  function showRankUpPopup(rank) {
+    // 创建弹窗
+    var overlay = document.createElement('div');
+    overlay.className = 'rankup-overlay';
+    overlay.innerHTML = '' +
+      '<div class="rankup-dialog">' +
+        '<div class="rankup-icon">' + rank.icon + '</div>' +
+        '<div class="rankup-title">🎉 段位提升！</div>' +
+        '<div class="rankup-rank" style="color:' + rank.color + '">' + rank.name + '</div>' +
+        '<button class="btn btn-primary rankup-btn">太棒了！</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    setTimeout(function() { overlay.classList.add('show'); }, 100);
+
+    var close = function() {
+      overlay.classList.remove('show');
+      setTimeout(function() { document.body.removeChild(overlay); }, 300);
+    };
+    overlay.querySelector('.rankup-btn').addEventListener('click', close);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
   }
 
   // ==================== 本月平均时薪 ====================
