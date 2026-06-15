@@ -7,11 +7,13 @@ window.App = window.App || {};
 App.dashboard = (function() {
   var currentYear = dayjs().year();
   var monthlyChart = null;
+  var selectedMonth = null; // null = 当前月, 否则为 dayjs 对象
 
   // ==================== 渲染统计看板 ====================
 
   function render() {
     App.store.getAll().then(function(tasks) {
+      updateMonthUI();
       renderIncomeCards(tasks);
       renderRank(tasks);
       renderAvgRate(tasks);
@@ -22,11 +24,27 @@ App.dashboard = (function() {
     });
   }
 
+  function getTargetMonth() {
+    return selectedMonth || dayjs();
+  }
+
+  function updateMonthUI() {
+    var m = getTargetMonth();
+    var isCurrent = !selectedMonth;
+    document.getElementById('month-label').textContent = m.format('YYYY年 M月');
+    document.getElementById('month-next').style.visibility = isCurrent ? 'hidden' : 'visible';
+    document.getElementById('month-today').style.display = isCurrent ? 'none' : 'inline-flex';
+    document.getElementById('stats-income-title').textContent = isCurrent ? '📊 本周 / 本月收入' : '📊 ' + m.format('M月') + '收入';
+    document.getElementById('stats-week-paid').closest('.income-card').style.display = isCurrent ? '' : 'none';
+    document.getElementById('stats-week-all').closest('.income-card').style.display = isCurrent ? '' : 'none';
+  }
+
   // ==================== 收入卡片 ====================
 
   function renderIncomeCards(tasks) {
     var week = App.getWeekRange();
-    var month = App.getMonthRange();
+    var targetMonth = getTargetMonth();
+    var month = { start: targetMonth.startOf('month'), end: targetMonth.endOf('month') };
 
     function inWeek(t) { return !dayjs(t.datetime).isBefore(week.start) && !dayjs(t.datetime).isAfter(week.end); }
     function inMonth(t) { return !dayjs(t.datetime).isBefore(month.start) && !dayjs(t.datetime).isAfter(month.end); }
@@ -53,7 +71,8 @@ App.dashboard = (function() {
   // ==================== 段位计算 ====================
 
   function renderRank(tasks) {
-    var month = App.getMonthRange();
+    var targetMonth = getTargetMonth();
+    var month = { start: targetMonth.startOf('month'), end: targetMonth.endOf('month') };
     var totalIncome = 0;
 
     tasks.forEach(function(t) {
@@ -136,7 +155,8 @@ App.dashboard = (function() {
   // ==================== 本月平均时薪 ====================
 
   function renderAvgRate(tasks) {
-    var month = App.getMonthRange();
+    var targetMonth = getTargetMonth();
+    var month = { start: targetMonth.startOf('month'), end: targetMonth.endOf('month') };
     var totalFee = 0;
     var totalHours = 0;
 
@@ -332,6 +352,30 @@ App.dashboard = (function() {
 
   function init() {
     initYearSwitcher();
+    initMonthSwitcher();
+  }
+
+  function initMonthSwitcher() {
+    document.getElementById('month-prev').addEventListener('click', function() {
+      var m = getTargetMonth().subtract(1, 'month');
+      if (m.isAfter(dayjs().startOf('month'))) return;
+      selectedMonth = m;
+      render();
+    });
+    document.getElementById('month-next').addEventListener('click', function() {
+      if (!selectedMonth) return;
+      var m = selectedMonth.add(1, 'month');
+      if (m.isAfter(dayjs().startOf('month'))) {
+        selectedMonth = null; // 回到本月
+      } else {
+        selectedMonth = m;
+      }
+      render();
+    });
+    document.getElementById('month-today').addEventListener('click', function() {
+      selectedMonth = null;
+      render();
+    });
   }
 
   return {

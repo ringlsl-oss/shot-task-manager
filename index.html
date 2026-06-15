@@ -112,8 +112,15 @@
 
     <!-- Tab 1: 统计看板 -->
     <section class="tab-page" id="tab-stats">
+      <div class="month-switcher">
+        <button id="month-prev">◀</button>
+        <span class="month-label" id="month-label">本月</span>
+        <button id="month-next" style="visibility:hidden;">▶</button>
+        <button id="month-today" class="btn btn-outline btn-sm">回到本月</button>
+      </div>
+
       <div class="stats-section">
-        <div class="section-title">📊 本周 / 本月收入</div>
+        <div class="section-title" id="stats-income-title">📊 本周 / 本月收入</div>
         <div class="income-overview">
           <div class="income-card paid-card">
             <div class="income-label">本周 · 已到账</div>

@@ -1033,6 +1033,45 @@ body {
   }
 }
 
+/* ==================== 月份切换器 ==================== */
+.month-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.month-switcher .month-label {
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 100px;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.month-switcher button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+.month-switcher .btn-sm {
+  width: auto;
+  height: auto;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.75rem;
+}
+
 /* ==================== 段位卡片 ==================== */
 .rank-card {
   background: var(--color-surface);
