@@ -83,6 +83,51 @@ App.store = (function() {
     });
   }
 
+  // ==================== localStorage 备份 ====================
+
+  var BACKUP_KEY = 'shot_tasks_backup';
+
+  function backupToLocal() {
+    getAll().then(function(tasks) {
+      try {
+        var backup = {
+          time: new Date().toISOString(),
+          count: tasks.length,
+          data: tasks
+        };
+        localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
+      } catch(e) {
+        // localStorage 满了就静默失败
+      }
+    });
+  }
+
+  function restoreFromLocal() {
+    try {
+      var raw = localStorage.getItem(BACKUP_KEY);
+      if (!raw) return Promise.resolve(0);
+      var backup = JSON.parse(raw);
+      if (!backup.data || !backup.data.length) return Promise.resolve(0);
+
+      return importData(backup.data).then(function() {
+        return backup.data.length;
+      });
+    } catch(e) {
+      return Promise.resolve(0);
+    }
+  }
+
+  function getBackupInfo() {
+    try {
+      var raw = localStorage.getItem(BACKUP_KEY);
+      if (!raw) return null;
+      var backup = JSON.parse(raw);
+      return { time: backup.time, count: backup.count };
+    } catch(e) {
+      return null;
+    }
+  }
+
   // ==================== 新增/更新 ====================
 
   function put(task) {
@@ -93,6 +138,7 @@ App.store = (function() {
         var request = store.put(task);
 
         transaction.oncomplete = function() {
+          backupToLocal();
           resolve();
         };
 
@@ -113,6 +159,7 @@ App.store = (function() {
         var request = store.delete(id);
 
         transaction.oncomplete = function() {
+          backupToLocal();
           resolve();
         };
 
@@ -133,6 +180,7 @@ App.store = (function() {
         var request = store.clear();
 
         transaction.oncomplete = function() {
+          localStorage.removeItem(BACKUP_KEY);
           resolve();
         };
 
@@ -156,6 +204,7 @@ App.store = (function() {
         });
 
         transaction.oncomplete = function() {
+          backupToLocal();
           resolve();
         };
 
@@ -174,6 +223,8 @@ App.store = (function() {
     put: put,
     delete: deleteById,
     clear: clear,
-    importData: importData
+    importData: importData,
+    restoreFromLocal: restoreFromLocal,
+    getBackupInfo: getBackupInfo
   };
 })();
