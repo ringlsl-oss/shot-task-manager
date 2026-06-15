@@ -202,10 +202,24 @@ App.exportData = (function() {
     var btnCSV = document.getElementById('btn-export-csv');
     var btnExcel = document.getElementById('btn-export-excel');
     var btnJSON = document.getElementById('btn-export-json');
+    var btnImport = document.getElementById('btn-import-json');
 
     if (btnCSV) btnCSV.addEventListener('click', exportCSV);
     if (btnExcel) btnExcel.addEventListener('click', exportExcel);
     if (btnJSON) btnJSON.addEventListener('click', exportJSON);
+    if (btnImport) {
+      btnImport.addEventListener('click', function() {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.addEventListener('change', function() {
+          if (input.files && input.files[0]) {
+            importJSON(input.files[0]);
+          }
+        });
+        input.click();
+      });
+    }
   }
 
   return {
