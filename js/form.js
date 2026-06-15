@@ -104,7 +104,8 @@ App.form = (function() {
         '<input type="text" class="form-input" id="f-location" placeholder="输入拍摄地点..." value="' + escapeHtml(data.location) + '">' +
       '</div>' +
 
-      '<div class="form-row">' +
+      // 时长（仅拍摄任务）
+      '<div class="form-row" id="f-group-duration" style="' + (isShooting ? '' : 'display:none;') + '">' +
         '<div class="form-group">' +
           '<label class="form-label">费用（元） <span class="required">*</span></label>' +
           '<input type="number" class="form-input" id="f-fee" placeholder="0" value="' + data.fee + '" min="0" step="1">' +
@@ -115,7 +116,14 @@ App.form = (function() {
         '</div>' +
       '</div>' +
 
-      '<div class="hourly-rate" id="f-rate">' +
+      // 费用（剪辑任务单独显示，不含时长）
+      '<div class="form-group" id="f-group-fee-only" style="' + (isShooting ? 'display:none;' : '') + '">' +
+        '<label class="form-label">费用（元） <span class="required">*</span></label>' +
+        '<input type="number" class="form-input" id="f-fee2" placeholder="0" value="' + data.fee + '" min="0" step="1">' +
+      '</div>' +
+
+      // 时薪（仅拍摄任务）
+      '<div class="hourly-rate" id="f-rate" style="' + (isShooting ? '' : 'display:none;') + '">' +
         '💡 预估时薪：<span class="rate-value">' + calcRateDisplay(data.fee, data.duration) + '</span>' +
       '</div>' +
 
@@ -201,9 +209,11 @@ App.form = (function() {
 
   function bindEvents() {
     var feeEl = document.getElementById('f-fee');
+    var feeOnlyEl = document.getElementById('f-fee2');
     var durEl = document.getElementById('f-duration');
 
     if (feeEl) feeEl.addEventListener('input', updateRate);
+    if (feeOnlyEl) feeOnlyEl.addEventListener('input', function() { feeEl.value = feeOnlyEl.value; updateRate(); });
     if (durEl) durEl.addEventListener('change', updateRate);
 
     // 支付状态切换
@@ -227,10 +237,21 @@ App.form = (function() {
         var isShooting = opt.dataset.value === 'shooting';
         var locGroup = document.getElementById('f-group-location');
         var equipGroup = document.getElementById('f-group-equipment');
-        var timeLabel = document.querySelector('label[for="f-datetime"]') || document.querySelector('#f-datetime').previousElementSibling;
+        var durGroup = document.getElementById('f-group-duration');
+        var feeOnlyGroup = document.getElementById('f-group-fee-only');
+        var rateEl = document.getElementById('f-rate');
 
         if (locGroup) locGroup.style.display = isShooting ? '' : 'none';
         if (equipGroup) equipGroup.style.display = isShooting ? '' : 'none';
+        if (durGroup) durGroup.style.display = isShooting ? '' : 'none';
+        if (feeOnlyGroup) feeOnlyGroup.style.display = isShooting ? 'none' : '';
+        if (rateEl) rateEl.style.display = isShooting ? '' : 'none';
+
+        // 同步两个费用字段的值
+        var feeEl = document.getElementById('f-fee');
+        var feeOnlyEl = document.getElementById('f-fee2');
+        if (isShooting && feeOnlyEl && feeEl) feeEl.value = feeOnlyEl.value;
+        if (!isShooting && feeEl && feeOnlyEl) feeOnlyEl.value = feeEl.value;
 
         // 更新"拍摄时间" → "开始时间"
         var dtLabel = document.querySelector('#f-datetime').closest('.form-group').querySelector('.form-label');
@@ -249,11 +270,14 @@ App.form = (function() {
     var fee = document.getElementById('f-fee').value.trim();
     var category = document.getElementById('f-category').value.trim();
 
+    var duration = document.getElementById('f-duration').value.trim();
+
     var errors = [];
     if (!client) errors.push('请填写客户名称');
     if (!datetime) errors.push('请选择时间');
     if (taskType === 'shooting' && !location) errors.push('请填写拍摄地点');
     if (!fee || parseFloat(fee) < 0) errors.push('请填写有效的费用');
+    if (taskType === 'shooting' && (!duration || parseInt(duration) <= 0)) errors.push('请选择拍摄时长');
     if (!category) errors.push('请选择任务类别');
 
     if (errors.length > 0) {
@@ -266,8 +290,11 @@ App.form = (function() {
   // ==================== 收集表单数据 ====================
 
   function collectData() {
-    var duration = parseInt(document.getElementById('f-duration').value) || 4;
-    var fee = parseFloat(document.getElementById('f-fee').value) || 0;
+    var taskType = document.getElementById('f-tasktype').value || 'shooting';
+    var isShooting = taskType === 'shooting';
+    var duration = isShooting ? (parseInt(document.getElementById('f-duration').value) || 4) : 0;
+    var feeEl = isShooting ? document.getElementById('f-fee') : document.getElementById('f-fee2');
+    var fee = parseFloat(feeEl.value) || 0;
     var paid = document.getElementById('f-paid').value === 'true';
 
     var task = {
@@ -278,7 +305,7 @@ App.form = (function() {
       location: document.getElementById('f-location').value.trim(),
       fee: fee,
       duration: duration,
-      hourlyRate: Math.round(fee / duration),
+      hourlyRate: isShooting ? Math.round(fee / duration) : 0,
       paid: paid,
       category: document.getElementById('f-category').value.trim(),
       clientSource: document.getElementById('f-source').value.trim(),
