@@ -264,7 +264,7 @@
 <!-- 注册 Service Worker -->
 <script>
   if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js?v=2').catch(function() {});
+    navigator.serviceWorker.register('sw.js').catch(function() {});
   }
 </script>
 
