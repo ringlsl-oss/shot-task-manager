@@ -90,7 +90,8 @@ App.form = (function() {
 
       '<div class="form-group">' +
         '<label class="form-label">客户名称 <span class="required">*</span></label>' +
-        '<input type="text" class="form-input" id="f-client" placeholder="输入客户名称..." value="' + escapeHtml(data.client) + '">' +
+        '<input type="text" class="form-input" id="f-client" placeholder="输入或选择客户名称..." value="' + escapeHtml(data.client) + '" list="client-suggestions" autocomplete="off">' +
+        '<datalist id="client-suggestions"></datalist>' +
       '</div>' +
 
       '<div class="form-group">' +
@@ -208,6 +209,21 @@ App.form = (function() {
   // ==================== 绑定事件 ====================
 
   function bindEvents() {
+    // 客户名称自动补全
+    App.store.getAll().then(function(tasks) {
+      var names = {};
+      tasks.forEach(function(t) { if (t.client) names[t.client.trim()] = true; });
+      var datalist = document.getElementById('client-suggestions');
+      if (datalist) {
+        datalist.innerHTML = '';
+        Object.keys(names).sort().forEach(function(name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          datalist.appendChild(opt);
+        });
+      }
+    });
+
     var feeEl = document.getElementById('f-fee');
     var feeOnlyEl = document.getElementById('f-fee2');
     var durEl = document.getElementById('f-duration');
