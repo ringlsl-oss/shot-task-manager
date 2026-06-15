@@ -22,6 +22,7 @@ App.form = (function() {
     // 默认值
     var now = dayjs().format('YYYY-MM-DDTHH:mm');
     var data = {
+      taskType: 'shooting',
       location: '',
       datetime: now,
       client: '',
@@ -36,6 +37,7 @@ App.form = (function() {
     };
 
     if (task) {
+      data.taskType = task.taskType || 'shooting';
       data.location = task.location || '';
       data.datetime = task.datetime ? dayjs(task.datetime).format('YYYY-MM-DDTHH:mm') : now;
       data.client = task.client || '';
@@ -48,6 +50,8 @@ App.form = (function() {
       data.clientSource = task.clientSource || '';
       data.notes = task.notes || '';
     }
+
+    var isShooting = data.taskType === 'shooting';
 
     // 构建类别选项
     var categoryOpts = App.CATEGORIES.map(function(c) {
@@ -70,18 +74,32 @@ App.form = (function() {
     var paidYesSel = data.paid === 'true' ? ' selected' : '';
     var paidNoSel = data.paid === 'false' ? ' selected' : '';
 
+    var shootingSel = data.taskType === 'shooting' ? ' selected' : '';
+    var editingSel = data.taskType === 'editing' ? ' selected' : '';
+
     var html = '' +
+      // ---- 任务类型切换 ----
+      '<div class="form-group">' +
+        '<label class="form-label">任务类型 <span class="required">*</span></label>' +
+        '<div class="payment-toggle" id="f-tasktype-toggle">' +
+          '<div class="payment-option paid-option' + shootingSel + '" data-value="shooting">📷 拍摄任务</div>' +
+          '<div class="payment-option unpaid-option' + editingSel + '" data-value="editing">🎬 剪辑任务</div>' +
+        '</div>' +
+        '<input type="hidden" id="f-tasktype" value="' + data.taskType + '">' +
+      '</div>' +
+
       '<div class="form-group">' +
         '<label class="form-label">客户名称 <span class="required">*</span></label>' +
         '<input type="text" class="form-input" id="f-client" placeholder="输入客户名称..." value="' + escapeHtml(data.client) + '">' +
       '</div>' +
 
       '<div class="form-group">' +
-        '<label class="form-label">拍摄时间 <span class="required">*</span></label>' +
+        '<label class="form-label">' + (isShooting ? '拍摄时间' : '开始时间') + ' <span class="required">*</span></label>' +
         '<input type="datetime-local" class="form-input" id="f-datetime" value="' + data.datetime + '">' +
       '</div>' +
 
-      '<div class="form-group">' +
+      // 地点（仅拍摄任务）
+      '<div class="form-group" id="f-group-location" style="' + (isShooting ? '' : 'display:none;') + '">' +
         '<label class="form-label">拍摄地点 <span class="required">*</span></label>' +
         '<input type="text" class="form-input" id="f-location" placeholder="输入拍摄地点..." value="' + escapeHtml(data.location) + '">' +
       '</div>' +
@@ -130,7 +148,8 @@ App.form = (function() {
         '<input type="date" class="form-input" id="f-deadline" value="' + data.deadline + '">' +
       '</div>' +
 
-      '<div class="form-group">' +
+      // 器材（仅拍摄任务）
+      '<div class="form-group" id="f-group-equipment" style="' + (isShooting ? '' : 'display:none;') + '">' +
         '<label class="form-label">所需器材</label>' +
         '<input type="text" class="form-input" id="f-equipment" placeholder="输入使用的设备..." value="' + escapeHtml(data.equipment) + '">' +
       '</div>' +
@@ -196,6 +215,28 @@ App.form = (function() {
         document.getElementById('f-paid').value = opt.dataset.value;
       });
     });
+
+    // 任务类型切换：显示/隐藏地点和器材
+    var typeOptions = document.querySelectorAll('#f-tasktype-toggle .payment-option');
+    typeOptions.forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        typeOptions.forEach(function(o) { o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        document.getElementById('f-tasktype').value = opt.dataset.value;
+
+        var isShooting = opt.dataset.value === 'shooting';
+        var locGroup = document.getElementById('f-group-location');
+        var equipGroup = document.getElementById('f-group-equipment');
+        var timeLabel = document.querySelector('label[for="f-datetime"]') || document.querySelector('#f-datetime').previousElementSibling;
+
+        if (locGroup) locGroup.style.display = isShooting ? '' : 'none';
+        if (equipGroup) equipGroup.style.display = isShooting ? '' : 'none';
+
+        // 更新"拍摄时间" → "开始时间"
+        var dtLabel = document.querySelector('#f-datetime').closest('.form-group').querySelector('.form-label');
+        if (dtLabel) dtLabel.innerHTML = isShooting ? '拍摄时间 <span class="required">*</span>' : '开始时间 <span class="required">*</span>';
+      });
+    });
   }
 
   // ==================== 表单校验 ====================
@@ -203,14 +244,15 @@ App.form = (function() {
   function validate() {
     var client = document.getElementById('f-client').value.trim();
     var datetime = document.getElementById('f-datetime').value.trim();
+    var taskType = document.getElementById('f-tasktype').value;
     var location = document.getElementById('f-location').value.trim();
     var fee = document.getElementById('f-fee').value.trim();
     var category = document.getElementById('f-category').value.trim();
 
     var errors = [];
     if (!client) errors.push('请填写客户名称');
-    if (!datetime) errors.push('请选择拍摄时间');
-    if (!location) errors.push('请填写拍摄地点');
+    if (!datetime) errors.push('请选择时间');
+    if (taskType === 'shooting' && !location) errors.push('请填写拍摄地点');
     if (!fee || parseFloat(fee) < 0) errors.push('请填写有效的费用');
     if (!category) errors.push('请选择任务类别');
 
@@ -230,6 +272,7 @@ App.form = (function() {
 
     var task = {
       id: currentTaskId || App.generateId(),
+      taskType: document.getElementById('f-tasktype').value || 'shooting',
       client: document.getElementById('f-client').value.trim(),
       datetime: document.getElementById('f-datetime').value.trim(),
       location: document.getElementById('f-location').value.trim(),
