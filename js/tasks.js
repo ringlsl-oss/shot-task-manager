@@ -89,8 +89,8 @@ App.tasks = (function() {
 
       var isShooting = task.taskType !== 'editing';
       var typeTag = isShooting ? '📷 拍摄' : '🎬 剪辑';
-      var typeTagClass = isShooting ? 'category-badge' : 'category-badge';
       var locationHtml = isShooting ? '<span>📍 ' + escapeHtml(task.location || '未知地点') + '</span>' : '';
+      var durationHtml = isShooting ? '<span>⏱ ' + App.getDurationLabel(task.duration) + '</span>' : '';
 
       html += '' +
         '<div class="task-card' + overdueClass + '" data-id="' + task.id + '">' +
@@ -101,7 +101,7 @@ App.tasks = (function() {
           '<div class="card-meta">' +
             locationHtml +
             '<span>📅 ' + App.formatShortDateTime(task.datetime) + '</span>' +
-            '<span>⏱ ' + App.getDurationLabel(task.duration) + '</span>' +
+            durationHtml +
           '</div>' +
           '<div class="card-footer">' +
             '<span class="category-badge">' + typeTag + '</span>' +
