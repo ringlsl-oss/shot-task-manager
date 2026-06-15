@@ -21,7 +21,6 @@ window.App = window.App || {};
     App.dashboard.init();
     App.reminders.init();
     App.exportData.init();
-    initDataRestore();
 
     // 初始渲染
     App.refreshAll();
@@ -140,38 +139,6 @@ window.App = window.App || {};
     App.dashboard.render();
     App.reminders.render();
   };
-
-  // ==================== 数据恢复（JSON导入） ====================
-
-  function initDataRestore() {
-    // 监听拖拽/粘贴JSON文件到页面（桌面端恢复数据用）
-    // 这里做一个隐藏的文件输入，用户在统计页可以点击"导入备份"
-    // 在统计页添加一个导入按钮——通过export模块处理
-
-    // 在dashboard导出按钮区域动态注入导入按钮
-    var exportSection = document.querySelector('#tab-stats .export-buttons');
-    if (exportSection) {
-      var importBtn = document.createElement('button');
-      importBtn.className = 'btn btn-outline btn-sm';
-      importBtn.textContent = '📂 恢复备份';
-      importBtn.style.flex = '1';
-      importBtn.addEventListener('click', function() {
-        var input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.style.display = 'none';
-        input.addEventListener('change', function() {
-          if (input.files && input.files[0]) {
-            App.exportData.importJSON(input.files[0]);
-          }
-        });
-        document.body.appendChild(input);
-        input.click();
-        document.body.removeChild(input);
-      });
-      exportSection.appendChild(importBtn);
-    }
-  }
 
   // ==================== 暴露切换方法 ====================
 
