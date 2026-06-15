@@ -8,6 +8,11 @@ window.App = window.App || {};
 
 App.CATEGORIES = ['微课', '宣传片', '活动', '纪录片'];
 App.CLIENT_SOURCES = ['个人一手业务', '其他业务'];
+App.TASK_TYPES = [
+  { value: 'shooting', label: '📷 拍摄任务' },
+  { value: 'editing',  label: '🎬 剪辑任务' }
+];
+
 App.DURATION_OPTIONS = [
   { value: 1,  label: '1小时' },
   { value: 2,  label: '2小时' },
