@@ -22,8 +22,22 @@ window.App = window.App || {};
     App.reminders.init();
     App.exportData.init();
 
-    // 初始渲染
-    App.refreshAll();
+    // 自动恢复：如果 IndexedDB 为空但 localStorage 有备份，自动恢复
+    App.store.getAll().then(function(tasks) {
+      if (!tasks || tasks.length === 0) {
+        var backupInfo = App.store.getBackupInfo();
+        if (backupInfo) {
+          App.store.restoreFromLocal().then(function(count) {
+            if (count > 0) {
+              App.showToast('数据已自动恢复 ' + count + ' 条 ✅');
+              App.refreshAll();
+            }
+          });
+          return;
+        }
+      }
+      App.refreshAll();
+    });
   });
 
   // ==================== Tab 切换 ====================
