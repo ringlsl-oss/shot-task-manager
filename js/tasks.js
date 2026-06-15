@@ -24,10 +24,12 @@ App.tasks = (function() {
 
       // 应用筛选
       var filtered = tasks.filter(function(task) {
-        // 搜索：客户名模糊匹配
+        // 搜索：项目名称模糊匹配
         if (currentFilters.search) {
           var kw = currentFilters.search.toLowerCase();
-          if (!task.client || task.client.toLowerCase().indexOf(kw) === -1) {
+          var projectMatch = task.project && task.project.toLowerCase().indexOf(kw) !== -1;
+          var clientMatch = task.client && task.client.toLowerCase().indexOf(kw) !== -1;
+          if (!projectMatch && !clientMatch) {
             return false;
           }
         }
@@ -96,7 +98,10 @@ App.tasks = (function() {
       html += '' +
         '<div class="task-card' + overdueClass + '" data-id="' + task.id + '">' +
           '<div class="card-header">' +
-            '<span class="client-name">' + escapeHtml(task.client) + '</span>' +
+            '<div>' +
+              (task.project ? '<span class="project-name">' + escapeHtml(task.project) + '</span>' : '') +
+              '<span class="client-name" style="' + (task.project ? 'font-size:0.8rem;color:var(--color-text-muted);display:block;' : '') + '">' + escapeHtml(task.client) + '</span>' +
+            '</div>' +
             '<span class="fee">' + App.formatCurrency(task.fee) + '</span>' +
           '</div>' +
           '<div class="card-meta">' +

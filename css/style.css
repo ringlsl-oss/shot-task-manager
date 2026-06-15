@@ -387,6 +387,14 @@ body {
   color: var(--color-text);
 }
 
+.task-card .project-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 2px;
+}
+
 .task-card .fee {
   font-weight: 700;
   font-size: 1.05rem;

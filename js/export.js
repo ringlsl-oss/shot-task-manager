@@ -11,6 +11,7 @@ App.exportData = (function() {
   var HEADERS = [
     { key: 'client',      label: '客户名称' },
     { key: 'taskType',    label: '任务类型' },
+    { key: 'project',     label: '项目名称' },
     { key: 'datetime',    label: '拍摄时间' },
     { key: 'location',    label: '拍摄地点' },
     { key: 'fee',         label: '费用(元)' },
@@ -30,6 +31,7 @@ App.exportData = (function() {
   function formatTask(task) {
     return {
       taskType:     task.taskType === 'video' ? '视频拍摄' : task.taskType === 'photo' ? '照片拍摄' : '剪辑',
+      project:      task.project || '',
       client:       task.client || '',
       datetime:     App.formatDateTime(task.datetime),
       location:     task.location || '',

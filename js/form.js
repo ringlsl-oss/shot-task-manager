@@ -28,6 +28,7 @@ App.form = (function() {
       client: '',
       fee: '',
       duration: '4',
+      project: '',
       paid: 'false',
       deadline: '',
       equipment: '',
@@ -40,6 +41,7 @@ App.form = (function() {
       data.taskType = task.taskType || 'video';
       // 兼容旧 'shooting' 类型 → 转为 'video'
       if (data.taskType === 'shooting') data.taskType = 'video';
+      data.project = task.project || '';
       data.location = task.location || '';
       data.datetime = task.datetime ? dayjs(task.datetime).format('YYYY-MM-DDTHH:mm') : now;
       data.client = task.client || '';
@@ -90,6 +92,11 @@ App.form = (function() {
           '<div class="task-type-option' + editingSel + '" data-value="editing">🎬<br>剪辑</div>' +
         '</div>' +
         '<input type="hidden" id="f-tasktype" value="' + data.taskType + '">' +
+      '</div>' +
+
+      '<div class="form-group">' +
+        '<label class="form-label">项目名称</label>' +
+        '<input type="text" class="form-input" id="f-project" placeholder="输入项目名称..." value="' + escapeHtml(data.project) + '">' +
       '</div>' +
 
       '<div class="form-group">' +
@@ -320,6 +327,7 @@ App.form = (function() {
     var task = {
       id: currentTaskId || App.generateId(),
       taskType: document.getElementById('f-tasktype').value || 'shooting',
+      project: document.getElementById('f-project').value.trim(),
       client: document.getElementById('f-client').value.trim(),
       datetime: document.getElementById('f-datetime').value.trim(),
       location: document.getElementById('f-location').value.trim(),
