@@ -13,6 +13,7 @@ App.dashboard = (function() {
   function render() {
     App.store.getAll().then(function(tasks) {
       renderIncomeCards(tasks);
+      renderRank(tasks);
       renderAvgRate(tasks);
       renderMonthlyChart(tasks);
       renderYearSummary(tasks);
@@ -47,6 +48,55 @@ App.dashboard = (function() {
     setText('stats-week-all', App.formatCurrency(wa));
     setText('stats-month-paid', App.formatCurrency(mp));
     setText('stats-month-all', App.formatCurrency(ma));
+  }
+
+  // ==================== 段位计算 ====================
+
+  function renderRank(tasks) {
+    var month = App.getMonthRange();
+    var totalIncome = 0;
+
+    tasks.forEach(function(t) {
+      if (!dayjs(t.datetime).isBefore(month.start) && !dayjs(t.datetime).isAfter(month.end)) {
+        totalIncome += t.fee;
+      }
+    });
+
+    var tiers = [
+      { max: 5000,  name: '青铜', icon: '🥉', color: '#CD7F32' },
+      { max: 7000,  name: '白银', icon: '🥈', color: '#C0C0C0' },
+      { max: 9000,  name: '黄金', icon: '🥇', color: '#FFD700' },
+      { max: 11000, name: '铂金', icon: '💎', color: '#7B2D8E' },
+      { max: 13000, name: '钻石', icon: '💠', color: '#00BFFF' },
+      { max: 15000, name: '星耀', icon: '🌟', color: '#FF6347' },
+      { max: Infinity, name: '王者', icon: '👑', color: '#FF4500' }
+    ];
+
+    var rank = tiers[0];
+    var prevMax = 0;
+    for (var i = 0; i < tiers.length; i++) {
+      if (totalIncome <= tiers[i].max) {
+        rank = tiers[i];
+        break;
+      }
+      prevMax = tiers[i].max;
+    }
+
+    var nextTarget = rank.max === Infinity ? null : rank.max;
+    var progress = rank.max === Infinity ? 100 : Math.min(100, Math.round((totalIncome - prevMax) / (rank.max - prevMax) * 100));
+    var remaining = nextTarget ? nextTarget - totalIncome : 0;
+
+    document.getElementById('rank-icon').textContent = rank.icon;
+    document.getElementById('rank-name').textContent = rank.name + ' · ' + App.formatCurrency(totalIncome);
+    document.getElementById('rank-name').style.color = rank.color;
+    document.getElementById('rank-progress-bar').style.width = progress + '%';
+    document.getElementById('rank-progress-bar').style.background = 'linear-gradient(90deg, ' + rank.color + ', ' + (tiers[Math.min(tiers.indexOf(rank) + 1, tiers.length - 1)].color) + ')';
+
+    if (nextTarget) {
+      document.getElementById('rank-sub').textContent = '距离' + tiers[tiers.indexOf(rank) + 1].name + '还需 ' + App.formatCurrency(remaining);
+    } else {
+      document.getElementById('rank-sub').textContent = '已达最高段位！👑';
+    }
   }
 
   // ==================== 本月平均时薪 ====================

@@ -1032,3 +1032,57 @@ body {
     font-size: 0.75rem;
   }
 }
+
+/* ==================== 段位卡片 ==================== */
+.rank-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.rank-icon {
+  font-size: 2.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+  animation: rankPulse 2s ease-in-out infinite;
+}
+
+@keyframes rankPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.rank-info {
+  flex: 1;
+}
+
+.rank-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.rank-progress-wrap {
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+.rank-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #CD7F32, #FFD700, #FF4500);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.rank-sub {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
