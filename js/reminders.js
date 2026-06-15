@@ -65,8 +65,9 @@ App.reminders = (function() {
             '<span class="overdue-badge">⚠️ 超期' + item.overdueDays + '天</span>' +
           '</div>' +
           '<div class="card-meta">' +
-            '<span>📍 ' + escapeHtml(t.location || '未知地点') + '</span>' +
-            '<span>📅 拍摄: ' + App.formatShortDateTime(t.datetime) + '</span>' +
+            '<span>' + (t.taskType === 'editing' ? '🎬 剪辑' : '📷 拍摄') + '</span>' +
+            (t.taskType !== 'editing' ? '<span>📍 ' + escapeHtml(t.location || '未知地点') + '</span>' : '') +
+            '<span>📅 时间: ' + App.formatShortDateTime(t.datetime) + '</span>' +
             '<span>💰 ' + App.formatCurrency(t.fee) + '</span>' +
           '</div>' +
           '<div class="card-footer">' +
