@@ -693,6 +693,40 @@ body {
   background: var(--color-warning-bg);
 }
 
+/* ==================== 三列任务类型切换 ==================== */
+.task-type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.task-type-option {
+  padding: 10px 4px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  font-family: var(--font-family);
+  background: var(--color-surface);
+  user-select: none;
+  -webkit-user-select: none;
+  line-height: 1.4;
+}
+
+.task-type-option.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.task-type-option:active {
+  transform: scale(0.95);
+}
+
 /* ==================== 按钮 ==================== */
 .btn {
   display: inline-flex;

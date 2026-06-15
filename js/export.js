@@ -29,7 +29,7 @@ App.exportData = (function() {
 
   function formatTask(task) {
     return {
-      taskType:     task.taskType === 'editing' ? '剪辑任务' : '拍摄任务',
+      taskType:     task.taskType === 'video' ? '视频拍摄' : task.taskType === 'photo' ? '照片拍摄' : '剪辑',
       client:       task.client || '',
       datetime:     App.formatDateTime(task.datetime),
       location:     task.location || '',

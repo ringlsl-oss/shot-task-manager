@@ -88,7 +88,8 @@ App.tasks = (function() {
       var paidText = task.paid ? '✅ 已收款' : (overdueDays > 0 ? '⚠️ 超期' + overdueDays + '天' : '⏳ 未收款');
 
       var isShooting = task.taskType !== 'editing';
-      var typeTag = isShooting ? '📷 拍摄' : '🎬 剪辑';
+      var typeLabels = { video: '📹 视频', photo: '📸 照片', editing: '🎬 剪辑' };
+      var typeTag = typeLabels[task.taskType] || (isShooting ? '📹 视频' : '🎬 剪辑');
       var locationHtml = isShooting ? '<span>📍 ' + escapeHtml(task.location || '未知地点') + '</span>' : '';
       var durationHtml = isShooting ? '<span>⏱ ' + App.getDurationLabel(task.duration) + '</span>' : '';
 

@@ -9,8 +9,9 @@ window.App = window.App || {};
 App.CATEGORIES = ['微课', '宣传片', '活动', '纪录片'];
 App.CLIENT_SOURCES = ['个人一手业务', '其他业务'];
 App.TASK_TYPES = [
-  { value: 'shooting', label: '📷 拍摄任务' },
-  { value: 'editing',  label: '🎬 剪辑任务' }
+  { value: 'video',   label: '📹 视频拍摄' },
+  { value: 'photo',   label: '📸 照片拍摄' },
+  { value: 'editing', label: '🎬 剪辑' }
 ];
 
 App.DURATION_OPTIONS = [

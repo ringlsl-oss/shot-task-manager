@@ -22,7 +22,7 @@ App.form = (function() {
     // 默认值
     var now = dayjs().format('YYYY-MM-DDTHH:mm');
     var data = {
-      taskType: 'shooting',
+      taskType: 'video',
       location: '',
       datetime: now,
       client: '',
@@ -37,7 +37,9 @@ App.form = (function() {
     };
 
     if (task) {
-      data.taskType = task.taskType || 'shooting';
+      data.taskType = task.taskType || 'video';
+      // 兼容旧 'shooting' 类型 → 转为 'video'
+      if (data.taskType === 'shooting') data.taskType = 'video';
       data.location = task.location || '';
       data.datetime = task.datetime ? dayjs(task.datetime).format('YYYY-MM-DDTHH:mm') : now;
       data.client = task.client || '';
@@ -51,7 +53,7 @@ App.form = (function() {
       data.notes = task.notes || '';
     }
 
-    var isShooting = data.taskType === 'shooting';
+    var isShooting = data.taskType !== 'editing';
 
     // 构建类别选项
     var categoryOpts = App.CATEGORIES.map(function(c) {
@@ -74,16 +76,18 @@ App.form = (function() {
     var paidYesSel = data.paid === 'true' ? ' selected' : '';
     var paidNoSel = data.paid === 'false' ? ' selected' : '';
 
-    var shootingSel = data.taskType === 'shooting' ? ' selected' : '';
+    var videoSel = data.taskType === 'video' ? ' selected' : '';
+    var photoSel = data.taskType === 'photo' ? ' selected' : '';
     var editingSel = data.taskType === 'editing' ? ' selected' : '';
 
     var html = '' +
-      // ---- 任务类型切换 ----
+      // ---- 任务类型切换（三选一） ----
       '<div class="form-group">' +
         '<label class="form-label">任务类型 <span class="required">*</span></label>' +
-        '<div class="payment-toggle" id="f-tasktype-toggle">' +
-          '<div class="payment-option paid-option' + shootingSel + '" data-value="shooting">📷 拍摄任务</div>' +
-          '<div class="payment-option unpaid-option' + editingSel + '" data-value="editing">🎬 剪辑任务</div>' +
+        '<div class="task-type-toggle" id="f-tasktype-toggle">' +
+          '<div class="task-type-option' + videoSel + '" data-value="video">📹<br>视频拍摄</div>' +
+          '<div class="task-type-option' + photoSel + '" data-value="photo">📸<br>照片拍摄</div>' +
+          '<div class="task-type-option' + editingSel + '" data-value="editing">🎬<br>剪辑</div>' +
         '</div>' +
         '<input type="hidden" id="f-tasktype" value="' + data.taskType + '">' +
       '</div>' +
@@ -243,14 +247,14 @@ App.form = (function() {
     });
 
     // 任务类型切换：显示/隐藏地点和器材
-    var typeOptions = document.querySelectorAll('#f-tasktype-toggle .payment-option');
+    var typeOptions = document.querySelectorAll('#f-tasktype-toggle .task-type-option');
     typeOptions.forEach(function(opt) {
       opt.addEventListener('click', function() {
         typeOptions.forEach(function(o) { o.classList.remove('selected'); });
         opt.classList.add('selected');
         document.getElementById('f-tasktype').value = opt.dataset.value;
 
-        var isShooting = opt.dataset.value === 'shooting';
+        var isShooting = opt.dataset.value !== 'editing';
         var locGroup = document.getElementById('f-group-location');
         var equipGroup = document.getElementById('f-group-equipment');
         var durGroup = document.getElementById('f-group-duration');
@@ -291,9 +295,9 @@ App.form = (function() {
     var errors = [];
     if (!client) errors.push('请填写客户名称');
     if (!datetime) errors.push('请选择时间');
-    if (taskType === 'shooting' && !location) errors.push('请填写拍摄地点');
+    if (taskType !== 'editing' && !location) errors.push('请填写拍摄地点');
     if (!fee || parseFloat(fee) < 0) errors.push('请填写有效的费用');
-    if (taskType === 'shooting' && (!duration || parseInt(duration) <= 0)) errors.push('请选择拍摄时长');
+    if (taskType !== 'editing' && (!duration || parseInt(duration) <= 0)) errors.push('请选择拍摄时长');
     if (!category) errors.push('请选择任务类别');
 
     if (errors.length > 0) {
@@ -306,8 +310,8 @@ App.form = (function() {
   // ==================== 收集表单数据 ====================
 
   function collectData() {
-    var taskType = document.getElementById('f-tasktype').value || 'shooting';
-    var isShooting = taskType === 'shooting';
+    var taskType = document.getElementById('f-tasktype').value || 'video';
+    var isShooting = taskType !== 'editing';
     var duration = isShooting ? (parseInt(document.getElementById('f-duration').value) || 4) : 0;
     var feeEl = isShooting ? document.getElementById('f-fee') : document.getElementById('f-fee2');
     var fee = parseFloat(feeEl.value) || 0;
