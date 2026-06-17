@@ -75,13 +75,16 @@ App.tasks = (function() {
     var container = document.getElementById('task-list');
     var empty = document.getElementById('task-empty');
 
+    var bulkBar = document.getElementById('task-bulk-ics');
     if (tasks.length === 0) {
       container.innerHTML = '';
       empty.style.display = 'block';
+      if (bulkBar) bulkBar.style.display = 'none';
       return;
     }
 
     empty.style.display = 'none';
+    if (bulkBar) bulkBar.style.display = 'block';
 
     var html = '';
     tasks.forEach(function(task) {
@@ -121,7 +124,9 @@ App.tasks = (function() {
             '<span class="category-badge" style="margin-left:4px;">' + escapeHtml(task.category || '未分类') + '</span>' +
             '<span class="paid-badge ' + paidBadgeClass + '">' + paidText + '</span>' +
             '<span class="paid-badge ' + delClass + '" style="margin-left:4px;">' + delText + '</span>' +
-            '<button class="btn btn-outline btn-sm btn-ics-card" data-id="' + task.id + '" style="margin-left:auto;padding:3px 8px;font-size:0.7rem;" title="添加到日历">📅</button>' +
+          '</div>' +
+          '<div style="text-align:right;margin-top:6px;">' +
+            '<button class="btn btn-outline btn-sm btn-ics-card" data-id="' + task.id + '">📅 添加到日历</button>' +
           '</div>' +
         '</div>';
     });
@@ -359,6 +364,45 @@ App.tasks = (function() {
   function init() {
     initFilterPanel();
     initSearch();
+
+    // 批量导出日程到日历
+    var bulkBtn = document.getElementById('btn-task-bulk-ics');
+    if (bulkBtn) {
+      bulkBtn.addEventListener('click', function() {
+        App.store.getAll().then(function(tasks) {
+          if (tasks.length === 0) { App.showToast('没有可导出的任务'); return; }
+
+          function toICS(d) { return d.format('YYYYMMDDTHHmmss'); }
+          var parts = [
+            'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//拍摄任务管理助手//CN',
+            'CALSCALE:GREGORIAN','METHOD:PUBLISH'
+          ];
+
+          tasks.forEach(function(t) {
+            var dtStart = dayjs(t.datetime);
+            var dtEnd = dtStart.add(t.duration || 1, 'hour');
+            parts.push('BEGIN:VEVENT');
+            parts.push('DTSTART:' + toICS(dtStart));
+            parts.push('DTEND:' + toICS(dtEnd));
+            parts.push('SUMMARY:' + (t.client || '未命名') + (t.location ? ' @' + t.location : ''));
+            parts.push('LOCATION:' + (t.location || ''));
+            parts.push('BEGIN:VALARM'); parts.push('TRIGGER:-PT30M'); parts.push('ACTION:DISPLAY');
+            parts.push('DESCRIPTION:任务提醒：' + (t.client || '') + '，30分钟后开始');
+            parts.push('END:VALARM');
+            parts.push('END:VEVENT');
+          });
+
+          parts.push('END:VCALENDAR');
+          var blob = new Blob([parts.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url; a.download = '所有拍摄日程_' + dayjs().format('MMDD') + '.ics';
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          App.showToast('所有日程已导出 📅');
+        });
+      });
+    }
   }
 
   return {
