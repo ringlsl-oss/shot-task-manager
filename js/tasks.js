@@ -121,11 +121,24 @@ App.tasks = (function() {
             '<span class="category-badge" style="margin-left:4px;">' + escapeHtml(task.category || '未分类') + '</span>' +
             '<span class="paid-badge ' + paidBadgeClass + '">' + paidText + '</span>' +
             '<span class="paid-badge ' + delClass + '" style="margin-left:4px;">' + delText + '</span>' +
+            '<button class="btn btn-outline btn-sm btn-ics-card" data-id="' + task.id + '" style="margin-left:auto;padding:3px 8px;font-size:0.7rem;" title="添加到日历">📅</button>' +
           '</div>' +
         '</div>';
     });
 
     container.innerHTML = html;
+
+    // 绑定 ICS 下载按钮（阻止冒泡，不触发编辑）
+    var icsBtns = container.querySelectorAll('.btn-ics-card');
+    icsBtns.forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = btn.dataset.id;
+        App.store.getById(id).then(function(task) {
+          if (task) downloadTaskICS(task);
+        });
+      });
+    });
 
     // 绑定卡片点击（编辑）
     var cards = container.querySelectorAll('.task-card');
@@ -292,6 +305,42 @@ App.tasks = (function() {
     }, 200);
 
     input.addEventListener('input', debouncedSearch);
+  }
+
+  // ==================== ICS 日历下载 ====================
+
+  function downloadTaskICS(task) {
+    var dtStart = dayjs(task.datetime);
+    var dtEnd = dtStart.add(task.duration || 1, 'hour');
+
+    function toICS(d) { return d.format('YYYYMMDDTHHmmss'); }
+    var client = task.client || '未命名';
+    var location = task.location || '';
+
+    var ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//拍摄任务管理助手//CN',
+      'CALSCALE:GREGORIAN','METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      'DTSTART:' + toICS(dtStart), 'DTEND:' + toICS(dtEnd),
+      'DTSTAMP:' + dayjs().format('YYYYMMDDTHHmmss'),
+      'SUMMARY:' + client + (location ? ' @' + location : ''),
+      'DESCRIPTION:费用：' + task.fee + '元\\n时长：' + (task.duration||'') + '小时\\n地点：' + location,
+      'LOCATION:' + location,
+      'STATUS:CONFIRMED','TRANSP:OPAQUE',
+      'BEGIN:VALARM','TRIGGER:-PT30M','ACTION:DISPLAY',
+      'DESCRIPTION:拍摄任务提醒：' + client + '，30分钟后开始',
+      'END:VALARM',
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+
+    var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = '拍摄_' + client + '_' + dayjs(task.datetime).format('MMDDHHmm') + '.ics';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    App.showToast('日历文件已下载 📅');
   }
 
   // ==================== 工具 ====================

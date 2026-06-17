@@ -111,7 +111,10 @@ App.form = (function() {
 
       '<div class="form-group">' +
         '<label class="form-label">' + (isShooting ? '拍摄时间' : '开始时间') + ' <span class="required">*</span></label>' +
-        '<input type="datetime-local" class="form-input" id="f-datetime" value="' + data.datetime + '">' +
+        '<div style="display:flex;gap:8px;">' +
+          '<input type="datetime-local" class="form-input" id="f-datetime" value="' + data.datetime + '" style="flex:1;">' +
+          '<button type="button" class="btn btn-outline btn-sm" id="btn-ics-form" title="添加到日历">📅</button>' +
+        '</div>' +
       '</div>' +
 
       // 地点（仅拍摄任务）
@@ -232,6 +235,48 @@ App.form = (function() {
 
   // ==================== 绑定事件 ====================
 
+  // ==================== ICS 日历下载（从表单当前值） ====================
+
+  function downloadFormICS() {
+    var client = document.getElementById('f-client').value.trim() || '未命名';
+    var datetime = document.getElementById('f-datetime').value;
+    var location = document.getElementById('f-location').value.trim();
+    var duration = parseInt(document.getElementById('f-duration').value) || 4;
+    var fee = document.getElementById('f-fee').value || '0';
+
+    if (!datetime) { App.showToast('请先选择时间'); return; }
+
+    var dtStart = dayjs(datetime);
+    var dtEnd = dtStart.add(duration, 'hour');
+
+    function toICS(d) { return d.format('YYYYMMDDTHHmmss'); }
+
+    var ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//拍摄任务管理助手//CN',
+      'CALSCALE:GREGORIAN','METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      'DTSTART:' + toICS(dtStart), 'DTEND:' + toICS(dtEnd),
+      'DTSTAMP:' + dayjs().format('YYYYMMDDTHHmmss'),
+      'SUMMARY:' + client + (location ? ' @' + location : ''),
+      'DESCRIPTION:费用：' + fee + '元\\n时长：' + duration + '小时\\n地点：' + (location || ''),
+      'LOCATION:' + (location || ''),
+      'STATUS:CONFIRMED','TRANSP:OPAQUE',
+      'BEGIN:VALARM','TRIGGER:-PT30M','ACTION:DISPLAY',
+      'DESCRIPTION:拍摄任务提醒：' + client + '，30分钟后开始',
+      'END:VALARM',
+      'END:VEVENT','END:VCALENDAR'
+    ].join('\r\n');
+
+    var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = '拍摄_' + client + '_' + dayjs(datetime).format('MMDDHHmm') + '.ics';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    App.showToast('日历文件已下载 📅');
+  }
+
   function bindEvents() {
     // 客户名称自动补全
     App.store.getAll().then(function(tasks) {
@@ -312,6 +357,10 @@ App.form = (function() {
         if (dtLabel) dtLabel.innerHTML = isShooting ? '拍摄时间 <span class="required">*</span>' : '开始时间 <span class="required">*</span>';
       });
     });
+
+    // ICS 日历下载按钮
+    var btnICS = document.getElementById('btn-ics-form');
+    if (btnICS) btnICS.addEventListener('click', downloadFormICS);
   }
 
   // ==================== 表单校验 ====================
